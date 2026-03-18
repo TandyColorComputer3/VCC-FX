@@ -297,8 +297,11 @@ void DisplayFlip(SystemState *DFState)	// Double buffering flip
 #endif // USE_DEBUG_AUDIOTAPE
 #endif // USE_OPENGL
 
-		g_Display->Present();
-	}
+			g_Display->Present();
+		}
+
+	if (DFState->WindowHandle == nullptr)
+		return;
 
 	static RECT CurWindow;
 	::GetWindowRect(DFState->WindowHandle, &CurWindow);
@@ -351,7 +354,14 @@ void UnlockScreen(SystemState *USState)
 
 void SetStatusBarText(const char *TextBuffer,const SystemState *STState)
 {
-	if (!STState->FullScreen)
+	if (STState->WindowHandle == nullptr)
+	{
+		strncpy(StatusText, TextBuffer, sizeof(StatusText) - 1);
+		StatusText[sizeof(StatusText) - 1] = 0;
+		return;
+	}
+
+	if (!STState->FullScreen && hwndStatusBar != nullptr)
 	{
 		SendMessage(hwndStatusBar,WM_SETTEXT,0, reinterpret_cast<LPARAM>(TextBuffer));
 		SendMessage(hwndStatusBar,WM_SIZE,0,0);
